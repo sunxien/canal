@@ -670,6 +670,8 @@ public class QueryLogEvent extends LogEvent {
 
     public static final int Q_LIZARD_PREPARE_GCN              = 201;
 
+    public static final int Q_OPT_INDEX_FORMAT_PANDA_ENABLED  = 255;
+
     private final void unpackVariables(LogBuffer buffer, final int end) throws IOException {
         int code = -1;
         try {
@@ -773,7 +775,7 @@ public class QueryLogEvent extends LogEvent {
                             // percona
                             // *start++ = thd->variables.binlog_ddl_skip_rewrite;
                             buffer.forward(1);
-                        }else {
+                        } else {
                             // PolarDB-X
                             // *start++ = thd->variables.opt_flashback_area;
                             buffer.forward(1);
@@ -828,6 +830,10 @@ public class QueryLogEvent extends LogEvent {
                         // prepareGCN = buffer.getLong64();
                         buffer.forward(8);
                         break;
+                    case Q_OPT_INDEX_FORMAT_PANDA_ENABLED:
+                        // *start++ = thd->variables.opt_index_format_panda_enabled;
+                        buffer.forward(1);
+                        break;
                     default:
                         /*
                          * That's why you must write status vars in growing
@@ -835,7 +841,7 @@ public class QueryLogEvent extends LogEvent {
                          */
                         logger.error("Query_log_event has unknown status vars (first has code: " + code
                                      + "), skipping the rest of them");
-                        break; // Break loop
+                        return; // Break loop
                 }
             }
         } catch (RuntimeException e) {
@@ -885,9 +891,11 @@ public class QueryLogEvent extends LogEvent {
                 return "Q_DEFAULT_TABLE_ENCRYPTION";
             case Q_OPT_FLASHBACK_AREA:
                 // or Q_DDL_SKIP_REWRITE
-                return "Q_DDL_SKIP_REWRITE";
+                return "Q_OPT_FLASHBACK_AREA";
             case Q_OPT_INDEX_FORMAT_GPP_ENABLED:
-                return "Q_DDL_SKIP_REWRITE";
+                return "Q_OPT_INDEX_FORMAT_GPP_ENABLED";
+            case Q_OPT_INDEX_FORMAT_PANDA_ENABLED:
+                return "Q_OPT_INDEX_FORMAT_PANDA_ENABLED";
             case Q_HRNOW:
                 // or Q_WSREP_SKIP_READONLY_CHECKS
                 return "Q_HRNOW";

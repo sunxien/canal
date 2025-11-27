@@ -306,7 +306,7 @@ public class MysqlConnector {
                         byte[] scramble = authData;
                         try {
                             encryptedPassword = MySQLPasswordEncrypter.scrambleCachingSha2(getPassword().getBytes(),
-                                    scramble);
+                                scramble);
                         } catch (DigestException e) {
                             throw new RuntimeException("can't encrypt password that will be sent to MySQL server.", e);
                         }
@@ -316,6 +316,9 @@ public class MysqlConnector {
                         if (body[0] == 0x01 && body[1] == 0x04) {
                             // fixed issue https://github.com/alibaba/canal/pull/4767, support mysql 8.0.30+
                             header = cachingSha2PasswordFullAuth(channel, header, getPassword().getBytes(), scramble);
+                            body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
+                        } else {
+                            header = PacketManager.readHeader(channel, 4);
                             body = PacketManager.readBytes(channel, header.getPacketBodyLength(), timeout);
                         }
                     }
